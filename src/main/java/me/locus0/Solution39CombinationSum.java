@@ -1,8 +1,6 @@
 package me.locus0;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created on 2020/1/7.
@@ -15,23 +13,26 @@ public class Solution39CombinationSum {
     public List<List<Integer>> combinationSum(int[] candidates, int target) {
         Arrays.sort(candidates);
         List<List<Integer>> ans = new ArrayList<>();
-        ans(candidates, target, 0, new ArrayList<>(), ans);
+        Deque<Integer> track = new ArrayDeque<>();
+        bp(ans, candidates, track, target, 0);
         return ans;
     }
 
-    public void ans(int[] candidates, int target, int index, ArrayList<Integer> answer, List<List<Integer>> answers) {
-        for (int i = index; i < candidates.length; i++) {
-            int newTarget = target - candidates[i];
-            if (newTarget >= 0) {
-                ArrayList<Integer> currentAnswer = (ArrayList) answer.clone();
-                currentAnswer.add(candidates[i]);
-                if (newTarget == 0) {
-                    answers.add(currentAnswer);
-                } else {
-                    ans(candidates, target - candidates[i], i, currentAnswer, answers);
-                }
-            } else {
-                break;
+    void bp(List<List<Integer>> ans, int[] candidates, Deque<Integer> track, int target, int index) {
+        if (target == 0) {
+            ans.add(Arrays.asList(track.toArray(new Integer[0])));
+            return;
+        } else if (target < 0) {
+            return;
+        } else {
+            for (int i = index; i < candidates.length; i++) {
+                int rest = target - candidates[i];
+                //做出选择
+                track.add(candidates[i]);
+                //进入下一层
+                bp(ans, candidates, track, rest, i);
+                //撤销选择
+                track.removeLast();
             }
         }
     }

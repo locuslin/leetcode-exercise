@@ -1,57 +1,57 @@
 package me.locus0;
 
-import java.util.Map;
 import java.util.HashMap;
 
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution76 {
     public String minWindow(String s, String t) {
-        String window = "";
         int left = 0;
         int right = 0;
-
-        String minContains = "";
-        int minLength = Integer.MAX_VALUE;
-        Map<Character, Integer> needs = new HashMap<>(t.length());
-        t.chars().forEach(c -> needs.compute((char) c, (k, v) -> v == null ? 1 : v + 1));
-        Character curChar = s.charAt(0);
-        boolean add = true;
+        //用来存储匹配串的字符以及其频率
+        HashMap<Character, Integer> need = new HashMap<>();
+        int valid = 0;
+        int minLen = Integer.MAX_VALUE;
+        for (int i = 0; i < t.length(); i++) {
+            char c = t.charAt(i);
+            need.compute(c, (k, v) -> v == null ? 1 : v + 1);
+        }
+        int l = 0, r = 0;
         while (right < s.length()) {
-            window = s.substring(left, right + 1);
-            curChar = s.charAt(add ? right : left - 1);
-            if (needs.containsKey(curChar)) {
-                //若增加了包含的 字符串，需求数-1
-                //若移动走了包含的字符串，需求数+1
-                if (add) {
-                    needs.compute(curChar, (k, v) -> v - 1);
-                } else {
-                    needs.compute(curChar, (k, v) -> v + 1);
+            char addingChar = s.charAt(right);
+            if (need.containsKey(addingChar)) {
+                int count = need.compute(addingChar, (k, v) -> v - 1);
+                if (count == 0) {
+                    valid++;
                 }
             }
-            System.out.printf("window %s,cur %s left %d,right %d,needs %s \r\n", window, curChar.toString(), left,
-                    right, needs.toString());
-            //若所有的needs值<=0 怎表示找到了匹配的目标子串
-            //等价命题为 不存在大于0 的need
-            if (!needs.values().stream().filter(v -> v > 0).findAny().isPresent()) {
-                //对比最小子串，看看是否是最小子串，并更新结果
-                if (window.length() < minLength) {
-                    minContains = window;
-                    minLength = minContains.length();
+            // System.out.printf("right %d %s needed %s valid %d \r\n", right, addingChar, need.toString(), valid);
+            while (valid == need.size()) {
+                //左移
+                int len = right - left + 1;
+                if (len < minLen) {
+                    l = left;
+                    r = right;
+                    minLen = len;
+                    //  System.out.println("updated");
                 }
-                //还可继续缩小窗口，则缩小窗口，只处理左边界，跳过右边界
-                if (right - left >= t.length()) {
-                    left++;
-                    add = false;
-                    continue;
+                //  System.out.printf("cur %s len %d \r\n", s.substring(left, right + 1), len);
+                char removingChar = s.charAt(left);
+                if (need.containsKey(removingChar)) {
+                    int count = need.compute(removingChar, (k, v) -> v + 1);
+                    if (count == 1) {
+                        valid--;
+                    }
                 }
+                //  System.out.printf("left %d %s needed %s valid %d\r\n", left, removingChar, need.toString(), valid);
+                left++;
             }
             right++;
-            add = true;
         }
-        return minContains;
+        return minLen == Integer.MAX_VALUE ? "" : s.substring(l, r + 1);
     }
 
     public static void main(String[] args) {
-        new Solution76().minWindow("ab","b");
+        String ret = new Solution76().minWindow("ADOBECODEBANC", "ABC");
+        System.out.println("ret " + ret);
     }
 }
